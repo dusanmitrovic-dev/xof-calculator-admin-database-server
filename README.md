@@ -30,6 +30,7 @@ A Node.js backend API server using Express and MongoDB (Mongoose) to manage conf
 │   └── earningRoutes.js
 ├── server.js           # Main application entry point
 ├── package.json        # Project dependencies and scripts
+├── CHANGELOG.md        # Record of changes
 └── README.md           # This file
 ```
 
@@ -38,6 +39,7 @@ A Node.js backend API server using Express and MongoDB (Mongoose) to manage conf
 *   Node.js (v14 or higher recommended)
 *   npm or yarn
 *   MongoDB instance (local or cloud-based like MongoDB Atlas)
+*   `curl` or an API testing tool like Postman
 
 ## Installation
 
@@ -74,7 +76,7 @@ A Node.js backend API server using Express and MongoDB (Mongoose) to manage conf
     npm start
     ```
 
-The server will start on the port specified in your `.env` file (default is 5000).
+The server will start on the port specified in your `.env` file (default is 5000). Default URL: `http://localhost:5000`
 
 ## API Endpoints
 
@@ -97,12 +99,105 @@ The server will start on the port specified in your `.env` file (default is 5000
 *   `PUT /entry/:earning_id`: Update a specific earning record by its `_id`.
 *   `DELETE /entry/:earning_id`: Delete a specific earning record by its `_id`.
 
+## Testing with `curl`
+
+Replace `YOUR_GUILD_ID` with a valid ID (e.g., `1190431681266589807`). Replace `YOUR_EARNING_ID` with an actual `_id` from a created earning.
+Replace `localhost:5000` if your server runs on a different port or host.
+
+### Config Endpoints
+
+1.  **Create/Update Guild Config:**
+    ```bash
+    curl -X POST -H "Content-Type: application/json" -d '{
+      "guild_id": "YOUR_GUILD_ID",
+      "models": ["modelA", "modelB"],
+      "shifts": ["day", "night"],
+      "periods": ["weekly", "monthly"],
+      "bonus_rules": [{"from": 0, "to": 1000, "amount": 5}],
+      "display_settings": {"agency_name": "My Test Agency"},
+      "commission_settings": { "roles": { "ROLE_ID_1": { "commission_percentage": 7.5 } } },
+      "roles": {"ROLE_ID_1": 7.5}
+    }' http://localhost:5000/api/config
+    ```
+
+2.  **Get All Guild Configs:**
+    ```bash
+    curl http://localhost:5000/api/config
+    ```
+
+3.  **Get Specific Guild Config:**
+    ```bash
+    curl http://localhost:5000/api/config/YOUR_GUILD_ID
+    ```
+
+4.  **Get Specific Field (models):**
+    ```bash
+    curl http://localhost:5000/api/config/YOUR_GUILD_ID/models
+    ```
+
+5.  **Update Specific Field (models):**
+    ```bash
+    curl -X PUT -H "Content-Type: application/json" -d '{"value": ["modelA", "modelB", "modelC"]}' http://localhost:5000/api/config/YOUR_GUILD_ID/models
+    ```
+
+6.  **Update Specific Field (display_settings):**
+    ```bash
+    curl -X PUT -H "Content-Type: application/json" -d '{"value": {"agency_name": "Updated Agency Name", "show_average": false}}' http://localhost:5000/api/config/YOUR_GUILD_ID/display_settings
+    ```
+
+7.  **Delete Guild Config:**
+    ```bash
+    curl -X DELETE http://localhost:5000/api/config/YOUR_GUILD_ID
+    ```
+
+### Earnings Endpoints
+
+1.  **Create Earning:**
+    ```bash
+    curl -X POST -H "Content-Type: application/json" -d '{
+      "id": "unique-earning-id-123",
+      "date": "15/07/2024",
+      "total_cut": 55.5,
+      "gross_revenue": 1500,
+      "period": "weekly",
+      "shift": "day",
+      "role": "Some Role",
+      "models": "modelA",
+      "hours_worked": 8,
+      "user_mention": "<@USER_ID>"
+    }' http://localhost:5000/api/earnings/YOUR_GUILD_ID
+    ```
+    *Note: Save the `_id` from the response for later tests.* 
+
+2.  **Get All Earnings for Guild:**
+    ```bash
+    curl http://localhost:5000/api/earnings/YOUR_GUILD_ID
+    ```
+
+3.  **Get Specific Earning:**
+    *(Replace `YOUR_EARNING_ID` with the actual `_id` from the creation step)*
+    ```bash
+    curl http://localhost:5000/api/earnings/entry/YOUR_EARNING_ID
+    ```
+
+4.  **Update Specific Earning:**
+    *(Replace `YOUR_EARNING_ID`)*
+    ```bash
+    curl -X PUT -H "Content-Type: application/json" -d '{"total_cut": 60.0, "hours_worked": 8.5}' http://localhost:5000/api/earnings/entry/YOUR_EARNING_ID
+    ```
+
+5.  **Delete Specific Earning:**
+    *(Replace `YOUR_EARNING_ID`)*
+    ```bash
+    curl -X DELETE http://localhost:5000/api/earnings/entry/YOUR_EARNING_ID
+    ```
+
 ## TODO / Potential Improvements
 
 *   **Authentication & Authorization:** Secure endpoints to ensure only authorized users/bots can modify data.
 *   **Input Validation:** Add more robust input validation (e.g., using `express-validator`).
 *   **Error Handling:** Implement more specific error handling and logging.
-*   **Testing:** Add unit and integration tests.
+*   **Testing Framework:** Implement a proper testing framework (e.g., Jest, Mocha, Chai) for automated unit and integration tests.
 *   **Data Seeding:** Create scripts to populate initial data.
 *   **API Documentation:** Use tools like Swagger/OpenAPI for better documentation.
 *   **Relationship Management:** Consider using Mongoose population if relationships between models become more complex (e.g., linking earnings directly to User documents).

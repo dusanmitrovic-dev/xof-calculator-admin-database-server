@@ -4,10 +4,15 @@ const {
     createEarning,
     getEarningById,
     updateEarning,
-    deleteEarning
+    deleteEarning,
+    getAllEarnings // new
 } = require('../controllers/earningController');
 
 const router = express.Router();
+
+// Route to get all earnings
+router.route('/')
+    .get(getAllEarnings);
 
 // Routes specific to a guild
 router.route('/:guild_id')

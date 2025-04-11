@@ -1,16 +1,31 @@
-const Earning = require('../models/Earning');
+const Earning = require('../models/Earnings');
 
 // @desc    Get all earnings for a specific guild
 // @route   GET /api/earnings/:guild_id
 // @access  Public
 exports.getGuildEarnings = async (req, res) => {
   try {
-    const earnings = await Earning.find({ guild_id: req.params.guild_id });
+    const guildId = Number(req.params.guild_id);
+    const earnings = await Earning.find({ guild_id: guildId });
+
     res.json(earnings);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
+};
+
+// @desc    Get all earnings
+// @route   GET /api/earnings
+// @access  Public
+exports.getAllEarnings = async (req, res) => {
+    try {
+        const earnings = await Earning.find();
+        res.json(earnings);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
 };
 
 // @desc    Create a new earning for a guild
@@ -32,6 +47,7 @@ exports.createEarning = async (req, res) => {
   } = req.body;
 
   try {
+   const guildId = Number(req.params.guild_id);
     // Optional: Check if guild exists in GuildConfig
     // const guildExists = await GuildConfig.findOne({ guild_id });
     // if (!guildExists) {
@@ -39,7 +55,7 @@ exports.createEarning = async (req, res) => {
     // }
 
     const newEarning = new Earning({
-      guild_id,
+      guild_id:guildId,
       id,
       date,
       total_cut,

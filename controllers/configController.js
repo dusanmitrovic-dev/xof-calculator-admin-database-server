@@ -18,7 +18,8 @@ exports.getAllGuildConfigs = async (req, res) => {
 // @access  Public
 exports.getGuildConfig = async (req, res) => {
   try {
-    const config = await GuildConfig.findOne({ guild_id: req.params.guild_id });
+    const guildId = Number(req.params.guild_id);
+    const config = await GuildConfig.findOne({ guild_id: guildId });
     if (!config) {
       return res.status(404).json({ msg: 'Guild config not found' });
     }
@@ -55,12 +56,12 @@ exports.createOrUpdateGuildConfig = async (req, res) => {
   if (roles) configFields.roles = roles;
 
   try {
-    let config = await GuildConfig.findOne({ guild_id });
+    let config = await GuildConfig.findOne({ guild_id: configFields.guild_id });
 
     if (config) {
       // Update
       config = await GuildConfig.findOneAndUpdate(
-        { guild_id },
+        { guild_id: configFields.guild_id },
         { $set: configFields },
         { new: true }
       );
@@ -83,7 +84,8 @@ exports.createOrUpdateGuildConfig = async (req, res) => {
 // @access  Public
 exports.getGuildConfigField = async (req, res) => {
   try {
-    const config = await GuildConfig.findOne({ guild_id: req.params.guild_id }).select(req.params.field);
+    const guildId = Number(req.params.guild_id);
+    const config = await GuildConfig.findOne({ guild_id: guildId }).select(req.params.field);
     if (!config) {
       return res.status(404).json({ msg: 'Guild config not found' });
     }
@@ -93,7 +95,7 @@ exports.getGuildConfigField = async (req, res) => {
     res.json({ [req.params.field]: config[req.params.field] });
   } catch (err) {
     console.error(err.message);
-     if (err.kind === 'ObjectId') { // Handle invalid ObjectId format for guild_id
+     if (err.name === 'CastError') { // Handle invalid  format for guild_id
         return res.status(400).json({ msg: 'Invalid Guild ID format' });
     }
     res.status(500).send('Server Error');
@@ -110,7 +112,8 @@ exports.updateGuildConfigField = async (req, res) => {
     const update = { $set: { [field]: value } };
 
     try {
-        const config = await GuildConfig.findOneAndUpdate({ guild_id }, update, { new: true, runValidators: true });
+        const guildId = Number(req.params.guild_id);
+        const config = await GuildConfig.findOneAndUpdate({ guild_id:guildId }, update, { new: true, runValidators: true });
 
         if (!config) {
             return res.status(404).json({ msg: 'Guild config not found' });
@@ -131,7 +134,8 @@ exports.updateGuildConfigField = async (req, res) => {
 // @access  Public // Add Auth later
 exports.deleteGuildConfig = async (req, res) => {
   try {
-    const config = await GuildConfig.findOneAndDelete({ guild_id: req.params.guild_id });
+    const guildId = Number(req.params.guild_id);
+    const config = await GuildConfig.findOneAndDelete({ guild_id: guildId });
 
     if (!config) {
       return res.status(404).json({ msg: 'Guild config not found' });

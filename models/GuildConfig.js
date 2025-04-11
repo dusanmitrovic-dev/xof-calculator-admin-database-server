@@ -4,7 +4,7 @@ const BonusRuleSchema = new mongoose.Schema({
   from: { type: Number, required: true },
   to: { type: Number, required: true },
   amount: { type: Number, required: true }
-}, { _id: false }); // Disable default _id for subdocuments if not needed
+}, { _id: false });
 
 const DisplaySettingsSchema = new mongoose.Schema({
   ephemeral_responses: { type: Boolean, default: false },
@@ -21,19 +21,18 @@ const CommissionSettingsSchema = new mongoose.Schema({
 
 
 const GuildConfigSchema = new mongoose.Schema({
-  guild_id: { type: String, required: true, unique: true, index: true },
+  guild_id: { type: Number, required: true, unique: true, index: true },
   models: { type: [String], default: [] },
   shifts: { type: [String], default: [] },
   periods: { type: [String], default: [] },
   bonus_rules: { type: [BonusRuleSchema], default: [] },
   display_settings: { type: DisplaySettingsSchema, default: () => ({}) },
   commission_settings: { type: CommissionSettingsSchema, default: () => ({ roles: new Map(), users: new Map() }) },
-  // Storing roles directly in commission_settings seems more structured based on your example
-  // If you need a separate top-level 'roles' field, define it here.
-  // roles: { type: Map, of: Number } // Example: Role ID -> Percentage (if needed separately)
-  roles: { type: Map, of: Number, default: new Map() } // Storing role ID -> percentage based on example
+  roles: { type: Map, of: Number, default: new Map() }
 
-}, { timestamps: true }); // Adds createdAt and updatedAt timestamps
+}, {
+    collection: 'guild_configs' // Explicitly set the collection name here
+});
 
 
 module.exports = mongoose.model('GuildConfig', GuildConfigSchema);

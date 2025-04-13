@@ -23,7 +23,7 @@ router.route('/:guild_id')
     .post(createEarning);
 
 // Routes for individual earning entries identified by the custom 'id' field
-router.route('/custom/:custom_id')
+router.route('/entry/:custom_id')
     .get(getEarningByCustomId)    // Was getEarningById
     .put(updateEarningByCustomId)   // Was updateEarning
     .delete(deleteEarningByCustomId); // Was deleteEarning

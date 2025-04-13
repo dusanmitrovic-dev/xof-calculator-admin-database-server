@@ -49,7 +49,7 @@ exports.createEarning = async (req, res) => {
 
   // Basic validation: Ensure custom id is provided
   if (!id) {
-      return res.status(400).json({ msg: 'Custom 'id' field is required in the request body' });
+      return res.status(400).json({ msg: `Custom {id} field is required in the request body` });
   }
 
   try {

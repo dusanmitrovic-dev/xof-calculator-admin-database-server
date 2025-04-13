@@ -11,6 +11,7 @@ A Node.js backend API server using Express and MongoDB (Mongoose) to manage conf
 *   **Earnings Tracking:**
     *   CRUD operations for earnings records associated with a guild.
     *   Store details like date, revenue, period, shift, role, models worked, hours, and user.
+    *   Identify and operate on individual earnings using a custom `id` field.
 
 ## Project Structure
 
@@ -23,7 +24,7 @@ A Node.js backend API server using Express and MongoDB (Mongoose) to manage conf
 │   ├── configController.js
 │   └── earningController.js
 ├── models/             # Mongoose schemas and models
-│   ├── Earning.js
+│   ├── Earnings.js     # Note: File name is plural
 │   └── GuildConfig.js
 ├── routes/             # API route definitions
 │   ├── configRoutes.js
@@ -60,14 +61,14 @@ A Node.js backend API server using Express and MongoDB (Mongoose) to manage conf
     *   Create a `.env` file in the root directory.
     *   Add the following variables:
         ```env
-        MONGO_URI=<your_mongodb_connection_string>
+        MONGO_URI=<your_mongodb_connection_string_with_database_name>
         PORT=5000
         ```
-    *   Replace `<your_mongodb_connection_string>` with your actual MongoDB connection URI (e.g., `mongodb://localhost:27017/guild_db` for a local database named `guild_db`).
+    *   Replace `<your_mongodb_connection_string_with_database_name>` with your actual MongoDB connection URI, ensuring it includes the database name (e.g., `mongodb+srv://user:pass@cluster.mongodb.net/your_actual_db_name?retryWrites=true&w=majority`).
 
 ## Running the Server
 
-*   **Development mode (with automatic restarts):**
+*   **Development mode (with automatic restarts using nodemon):**
     ```bash
     npm run dev
     ```
@@ -86,22 +87,24 @@ The server will start on the port specified in your `.env` file (default is 5000
 
 *   `GET /`: Get all guild configurations.
 *   `POST /`: Create a new guild configuration or update an existing one (based on `guild_id` in the request body).
-*   `GET /:guild_id`: Get the configuration for a specific guild.
+*   `GET /:guild_id`: Get the configuration for a specific guild (using the guild's Snowflake ID as a string).
 *   `DELETE /:guild_id`: Delete the configuration for a specific guild.
 *   `GET /:guild_id/:field`: Get a specific field (e.g., `models`, `shifts`, `display_settings`) from a guild's configuration.
 *   `PUT /:guild_id/:field`: Update a specific field in a guild's configuration. The request body should be `{"value": <new_value>}`.
 
 ### Earnings (`/api/earnings`)
 
-*   `GET /:guild_id`: Get all earnings records for a specific guild.
-*   `POST /:guild_id`: Create a new earning record for a specific guild.
-*   `GET /entry/:earning_id`: Get a specific earning record by its MongoDB `_id`.
-*   `PUT /entry/:earning_id`: Update a specific earning record by its `_id`.
-*   `DELETE /entry/:earning_id`: Delete a specific earning record by its `_id`.
+*   `GET /`: Get all earnings records across all guilds.
+*   `GET /:guild_id`: Get all earnings records for a specific guild (using the guild's Snowflake ID as a string).
+*   `POST /:guild_id`: Create a new earning record for a specific guild (requires a unique custom `id` field in the request body).
+*   `GET /custom/:custom_id`: Get a specific earning record by its custom `id` field.
+*   `PUT /custom/:custom_id`: Update a specific earning record by its custom `id`.
+*   `DELETE /custom/:custom_id`: Delete a specific earning record by its custom `id`.
 
 ## Testing with `curl`
 
-Replace `YOUR_GUILD_ID` with a valid ID (e.g., `1190431681266589807`). Replace `YOUR_EARNING_ID` with an actual `_id` from a created earning.
+Replace `YOUR_GUILD_ID` with a valid guild Snowflake ID string (e.g., `1190431681266589807`).
+Replace `YOUR_CUSTOM_EARNING_ID` with the value you provided in the `id` field when creating an earning (e.g., `unique-earning-id-123`).
 Replace `localhost:5000` if your server runs on a different port or host.
 
 ### Config Endpoints
@@ -115,8 +118,8 @@ Replace `localhost:5000` if your server runs on a different port or host.
       "periods": ["weekly", "monthly"],
       "bonus_rules": [{"from": 0, "to": 1000, "amount": 5}],
       "display_settings": {"agency_name": "My Test Agency"},
-      "commission_settings": { "roles": { "ROLE_ID_1": { "commission_percentage": 7.5 } } },
-      "roles": {"ROLE_ID_1": 7.5}
+      "commission_settings": { "roles": { "YOUR_ROLE_ID_1": { "commission_percentage": 7.5 } } },
+      "roles": {"YOUR_ROLE_ID_1": 7.5}
     }' http://localhost:5000/api/config
     ```
 
@@ -154,8 +157,10 @@ Replace `localhost:5000` if your server runs on a different port or host.
 
 1.  **Create Earning:**
     ```bash
-    curl -X POST -H "Content-Type: application/json" -d '{
-      "id": "unique-earning-id-123",
+    # Use a unique value for the "id" field below
+    export CUSTOM_ID="unique-earning-$(date +%s)" 
+    curl -X POST -H "Content-Type: application/json" -d "{
+      "id": "$CUSTOM_ID",
       "date": "15/07/2024",
       "total_cut": 55.5,
       "gross_revenue": 1500,
@@ -165,31 +170,31 @@ Replace `localhost:5000` if your server runs on a different port or host.
       "models": "modelA",
       "hours_worked": 8,
       "user_mention": "<@USER_ID>"
-    }' http://localhost:5000/api/earnings/YOUR_GUILD_ID
+    }" http://localhost:5000/api/earnings/YOUR_GUILD_ID
+    echo "Created earning with custom ID: $CUSTOM_ID"
     ```
-    *Note: Save the `_id` from the response for later tests.* 
 
 2.  **Get All Earnings for Guild:**
     ```bash
     curl http://localhost:5000/api/earnings/YOUR_GUILD_ID
     ```
 
-3.  **Get Specific Earning:**
-    *(Replace `YOUR_EARNING_ID` with the actual `_id` from the creation step)*
+3.  **Get Specific Earning by Custom ID:**
+    *(Replace `YOUR_CUSTOM_EARNING_ID` with the actual custom `id` used during creation)*
     ```bash
-    curl http://localhost:5000/api/earnings/entry/YOUR_EARNING_ID
+    curl http://localhost:5000/api/earnings/custom/YOUR_CUSTOM_EARNING_ID
     ```
 
-4.  **Update Specific Earning:**
-    *(Replace `YOUR_EARNING_ID`)*
+4.  **Update Specific Earning by Custom ID:**
+    *(Replace `YOUR_CUSTOM_EARNING_ID`)*
     ```bash
-    curl -X PUT -H "Content-Type: application/json" -d '{"total_cut": 60.0, "hours_worked": 8.5}' http://localhost:5000/api/earnings/entry/YOUR_EARNING_ID
+    curl -X PUT -H "Content-Type: application/json" -d '{"total_cut": 60.0, "hours_worked": 8.5}' http://localhost:5000/api/earnings/custom/YOUR_CUSTOM_EARNING_ID
     ```
 
-5.  **Delete Specific Earning:**
-    *(Replace `YOUR_EARNING_ID`)*
+5.  **Delete Specific Earning by Custom ID:**
+    *(Replace `YOUR_CUSTOM_EARNING_ID`)*
     ```bash
-    curl -X DELETE http://localhost:5000/api/earnings/entry/YOUR_EARNING_ID
+    curl -X DELETE http://localhost:5000/api/earnings/custom/YOUR_CUSTOM_EARNING_ID
     ```
 
 ## TODO / Potential Improvements
@@ -201,3 +206,5 @@ Replace `localhost:5000` if your server runs on a different port or host.
 *   **Data Seeding:** Create scripts to populate initial data.
 *   **API Documentation:** Use tools like Swagger/OpenAPI for better documentation.
 *   **Relationship Management:** Consider using Mongoose population if relationships between models become more complex (e.g., linking earnings directly to User documents).
+*   **Date Handling:** Consider using the `Date` type in Mongoose for the `date` field for easier querying and manipulation.
+*   **Indexing:** Review database indexes for optimal query performance, especially on fields used for lookups (like `guild_id` and the custom `id` in earnings).

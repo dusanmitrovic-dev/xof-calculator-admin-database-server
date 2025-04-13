@@ -1,12 +1,13 @@
-const Earning = require('../models/Earning');
+const Earnings = require('../models/Earnings'); // Corrected model import name
+const GuildConfig = require('../models/GuildConfig'); // Added for potential future use (e.g., checking if guild exists)
 
 // @desc    Get all earnings for a specific guild
 // @route   GET /api/earnings/:guild_id
 // @access  Public
 exports.getGuildEarnings = async (req, res) => {
   try {
-    const guildId = Number(req.params.guild_id);
-    const earnings = await Earning.find({ guild_id: guildId });
+    const guildId = req.params.guild_id; // Removed Number() conversion
+    const earnings = await Earnings.find({ guild_id: guildId });
     res.json(earnings);
   } catch (err) {
     console.error(err.message);
@@ -19,7 +20,7 @@ exports.getGuildEarnings = async (req, res) => {
 // @access  Public
 exports.getAllEarnings = async (req, res) => {
     try {
-        const earnings = await Earning.find();
+        const earnings = await Earnings.find();
         res.json(earnings);
     } catch (err) {
         console.error(err.message);
@@ -31,7 +32,7 @@ exports.getAllEarnings = async (req, res) => {
 // @route   POST /api/earnings/:guild_id
 // @access  Public // Add Auth later
 exports.createEarning = async (req, res) => {
-  const { guild_id } = req.params;
+  const { guild_id } = req.params; // Use directly as string
 
   const {
     id,
@@ -47,15 +48,14 @@ exports.createEarning = async (req, res) => {
   } = req.body;
 
   try {
-    const guildId = Number(req.params.guild_id);
     // Optional: Check if guild exists in GuildConfig
-    // const guildExists = await GuildConfig.findOne({ guild_id });
+    // const guildExists = await GuildConfig.findOne({ guild_id: guild_id }); // Use string guild_id
     // if (!guildExists) {
     //   return res.status(404).json({ msg: 'Guild not found, cannot create earning' });
     // }
 
-    const newEarning = new Earning({
-      guild_id: guildId,
+    const newEarning = new Earnings({
+      guild_id: guild_id, // Use string guild_id
       id,
       date,
       total_cut,
@@ -80,11 +80,11 @@ exports.createEarning = async (req, res) => {
 };
 
 // @desc    Get a specific earning by its ID
-// @route   GET /api/earnings/entry/:earning_id // Use a different path segment to avoid conflict
+// @route   GET /api/earnings/entry/:earning_id
 // @access  Public
 exports.getEarningById = async (req, res) => {
   try {
-    const earning = await Earning.findById(req.params.earning_id);
+    const earning = await Earnings.findById(req.params.earning_id);
     if (!earning) {
       return res.status(404).json({ msg: 'Earning not found' });
     }
@@ -103,7 +103,7 @@ exports.getEarningById = async (req, res) => {
 // @access  Public // Add Auth later
 exports.updateEarning = async (req, res) => {
   try {
-    const earning = await Earning.findByIdAndUpdate(
+    const earning = await Earnings.findByIdAndUpdate(
       req.params.earning_id,
       { $set: req.body },
       { new: true, runValidators: true } // Return updated doc and run schema validators
@@ -131,7 +131,7 @@ exports.updateEarning = async (req, res) => {
 // @access  Public // Add Auth later
 exports.deleteEarning = async (req, res) => {
   try {
-    const earning = await Earning.findByIdAndDelete(req.params.earning_id);
+    const earning = await Earnings.findByIdAndDelete(req.params.earning_id);
 
     if (!earning) {
       return res.status(404).json({ msg: 'Earning not found' });

@@ -138,3 +138,7 @@ dist
 package-lock.json
 
 /.idx
+<<<<<<< HEAD
+=======
+/.idx/*
+>>>>>>> df04324ffc89225f71d36e4b6710d21ce1d24d11

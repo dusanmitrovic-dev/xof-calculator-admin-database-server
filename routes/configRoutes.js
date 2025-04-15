@@ -1,59 +1,36 @@
 const express = require('express');
-const {
-    getAllGuildConfigs,
-    getGuildConfig,
-    createOrUpdateGuildConfig,
-    getGuildConfigField,
-    updateGuildConfigField,
-    deleteGuildConfig
-} = require('../controllers/configController');
-
 const router = express.Router();
+const configController = require('../controllers/configController');
+// Restore middleware import
+const { protect, adminOnly, canManageGuild } = require('../middleware/authMiddleware');
 
-// Base routes
-router.route('/')
-    .get(getAllGuildConfigs)
-    .post(createOrUpdateGuildConfig);
+console.log('[DEBUG] Loading configRoutes.js...');
+console.log('[DEBUG] Middleware imported in configRoutes.js');
 
-// Routes specific to a guild
-router.route('/:guild_id')
-    .get(getGuildConfig)
-    .delete(deleteGuildConfig);
-    // Note: PUT on /:guild_id could replace the entire config, similar to POST if it exists.
-    // Add .put(createOrUpdateGuildConfig) here if you want that behavior.
+// @route   POST /api/config/:guild_id
+// @desc    Create or Update config for a specific guild
+// @access  Protected (Admin or Manager for this Guild)
+router.post('/:guild_id', protect, canManageGuild, configController.createOrUpdateGuildConfig);
 
+// @route   GET /api/config/:guild_id
+// @desc    Get config for a specific guild
+// @access  Protected (Admin or Manager for this Guild)
+router.get('/:guild_id', protect, canManageGuild, configController.getGuildConfig);
 
-// Routes for specific fields within a guild's config
-router.route('/:guild_id/:field')
-    .get(getGuildConfigField) // GET /api/config/123/models
-    .put(updateGuildConfigField); // PUT /api/config/123/models (with body: { "value": [...] })
-    // Consider adding DELETE for specific fields if needed, e.g., removing all models:
-    // .delete(deleteGuildConfigField) // Requires a new controller function
+// @route   DELETE /api/config/:guild_id
+// @desc    Delete config for a specific guild
+// @access  Protected (Admin only)
+router.delete('/:guild_id', protect, adminOnly, configController.deleteGuildConfig);
 
+// @route   GET /api/config/:guild_id/:field
+// @desc    Get a specific field from a guild's config
+// @access  Protected (Admin or Manager for this Guild)
+router.get('/:guild_id/:field', protect, canManageGuild, configController.getGuildConfigField);
 
-// Specific config endpoints (Alternative/More Explicit Structure)
-// You can uncomment these if you prefer more explicit routes over the dynamic :field route
+// @route   PUT /api/config/:guild_id/:field
+// @desc    Update a specific field in a guild's config
+// @access  Protected (Admin or Manager for this Guild)
+router.put('/:guild_id/:field', protect, canManageGuild, configController.updateGuildConfigField);
 
-// router.get('/:guild_id/models', (req, res) => getGuildConfigField(req, res));
-// router.put('/:guild_id/models', (req, res) => updateGuildConfigField(req, res));
-
-// router.get('/:guild_id/shifts', (req, res) => getGuildConfigField(req, res));
-// router.put('/:guild_id/shifts', (req, res) => updateGuildConfigField(req, res));
-
-// router.get('/:guild_id/periods', (req, res) => getGuildConfigField(req, res));
-// router.put('/:guild_id/periods', (req, res) => updateGuildConfigField(req, res));
-
-// router.get('/:guild_id/bonus_rules', (req, res) => getGuildConfigField(req, res));
-// router.put('/:guild_id/bonus_rules', (req, res) => updateGuildConfigField(req, res));
-
-// router.get('/:guild_id/display_settings', (req, res) => getGuildConfigField(req, res));
-// router.put('/:guild_id/display_settings', (req, res) => updateGuildConfigField(req, res));
-
-// router.get('/:guild_id/commission_settings', (req, res) => getGuildConfigField(req, res));
-// router.put('/:guild_id/commission_settings', (req, res) => updateGuildConfigField(req, res));
-
-// router.get('/:guild_id/roles', (req, res) => getGuildConfigField(req, res));
-// router.put('/:guild_id/roles', (req, res) => updateGuildConfigField(req, res));
-
-
+console.log('[DEBUG] Exporting router from configRoutes.js...');
 module.exports = router;

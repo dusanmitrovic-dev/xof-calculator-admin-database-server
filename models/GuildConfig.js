@@ -21,7 +21,7 @@ const CommissionSettingsSchema = new mongoose.Schema({
 
 
 const GuildConfigSchema = new mongoose.Schema({
-  guild_id: { type: Number, required: true, unique: true, index: true },
+  guild_id: { type: String, required: true, unique: true, index: true },
   models: { type: [String], default: [] },
   shifts: { type: [String], default: [] },
   periods: { type: [String], default: [] },

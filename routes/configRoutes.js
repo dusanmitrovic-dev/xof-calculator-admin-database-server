@@ -7,6 +7,12 @@ const { protect, adminOnly, canManageGuild } = require('../middleware/authMiddle
 console.log('[DEBUG] Loading configRoutes.js...');
 console.log('[DEBUG] Middleware imported in configRoutes.js');
 
+// @route   GET /api/config
+// @desc    Get all available guild configs (id and name only)
+// @access  Protected (Logged-in users)
+// *** Added this route ***
+router.get('/', protect, configController.getAllGuildConfigs);
+
 // @route   POST /api/config/:guild_id
 // @desc    Create or Update config for a specific guild
 // @access  Protected (Admin or Manager for this Guild)

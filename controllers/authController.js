@@ -28,8 +28,8 @@ exports.register = async (req, res) => {
             return res.status(400).json({ msg: 'User already exists' });
         }
 
-        const userRole = isFirstUser ? 'admin' : 'manager';
-        // For subsequent managers, managedGuilds would be assigned by an admin later.
+        const userRole = isFirstUser ? 'admin' : 'user';
+        // For subsequent users, managedGuilds would be assigned by an admin later.
         // For the first admin, managedGuilds is irrelevant as they have access to all.
 
         user = new User({

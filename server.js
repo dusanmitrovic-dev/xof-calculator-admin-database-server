@@ -12,10 +12,17 @@ app.use(express.json({ extended: false })); // Allows us to accept JSON data in 
 
 // Define Routes
 app.get('/', (req, res) => res.send('API Running')); // Simple check
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/config', require('./routes/configRoutes'));
-app.use('/api/earnings', require('./routes/earningRoutes'));
-app.use('/api/users', require('./routes/userRoutes')); // Mount user routes
+const authRoutes = require('./routes/authRoutes');
+const configRoutes = require('./routes/configRoutes');
+const earningRoutes = require('./routes/earningRoutes');
+const userRoutes = require('./routes/userRoutes'); // Mount user routes
+const guildRoutes = require('./routes/guildRoutes'); // Mount guild routes
+
+app.use('/api/auth', authRoutes);
+app.use('/api/config', configRoutes);
+app.use('/api/earnings', earningRoutes);
+app.use('/api/users', userRoutes); // Use user routes
+app.use('/api/guilds', guildRoutes); // Use guild routes
 
 const PORT = process.env.PORT || 5000;
 

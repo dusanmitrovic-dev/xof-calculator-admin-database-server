@@ -33,11 +33,11 @@ exports.getUserById = async (req, res) => {
     }
 };
 
-// @desc    Update a user's details (e.g., role, managedGuilds)
+// @desc    Update a user's details (e.g., role, managed_guild_ids)
 // @route   PUT /api/users/:user_id
 // @access  Admin Only
 exports.updateUser = async (req, res) => {
-    const { role, managedGuilds } = req.body; // Only allow updating specific fields
+    const { role, managed_guild_ids } = req.body; // Only allow updating specific fields. Changed to managed_guild_ids
     const { user_id } = req.params;
 
     // Ensure admin cannot accidentally demote themselves or change their own guilds
@@ -49,18 +49,26 @@ exports.updateUser = async (req, res) => {
     if (!targetUser) {
         return res.status(404).json({ msg: 'User not found' });
     }
-    if(targetUser.role === 'admin' && managedGuilds !== undefined) {
+    // Changed to managed_guild_ids
+    if(targetUser.role === 'admin' && managed_guild_ids !== undefined) {
         return res.status(400).json({ msg: 'Cannot assign managed guilds to an admin.' });
     }
 
     const updateFields = {};
     if (role) updateFields.role = role;
-    if (managedGuilds !== undefined) updateFields.managedGuilds = managedGuilds; // Allow setting empty array
+    // Allow setting empty array. Changed to managed_guild_ids
+    if (managed_guild_ids !== undefined) updateFields.managed_guild_ids = managed_guild_ids; 
+
+    // Prepare the full update operation to set new fields and unset the old one
+    const updateOperation = {
+        $set: updateFields,
+        $unset: { managedGuilds: "" } // Remove the old 'managedGuilds' field
+    };
 
     try {
         const user = await User.findByIdAndUpdate(
             user_id,
-            { $set: updateFields },
+            updateOperation, // Use the combined operation
             { new: true, runValidators: true } // runValidators checks enum for role
         ).select('-password');
 

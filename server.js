@@ -1,6 +1,7 @@
 require('dotenv').config(); // Load environment variables from .env file
 const express = require('express');
 const connectDB = require('./config/db');
+const cors = require('cors');
 
 // Connect Database
 connectDB();
@@ -9,6 +10,13 @@ const app = express();
 
 // Init Middleware
 app.use(express.json({ extended: false })); // Allows us to accept JSON data in body
+const allowedOrigins = process.env.FRONTEND_ORIGINS ? process.env.FRONTEND_ORIGINS.split(',') : [];
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true, // if you use cookies or authentication headers
+  })
+);
 
 // Define Routes
 app.get('/', (req, res) => res.send('API Running')); // Simple check
